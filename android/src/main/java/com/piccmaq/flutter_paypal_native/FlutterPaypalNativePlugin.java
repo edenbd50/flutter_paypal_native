@@ -19,6 +19,7 @@ import com.paypal.checkout.order.PurchaseUnit;
 import com.piccmaq.flutter_paypal_native.models.CheckoutConfigStore;
 import com.piccmaq.flutter_paypal_native.models.CurrencyCodeHelper;
 import com.piccmaq.flutter_paypal_native.models.EnvironmentHelper;
+import com.piccmaq.flutter_paypal_native.models.OrderIntentHelper;
 import com.piccmaq.flutter_paypal_native.models.PayPalCallBackHelper;
 import com.piccmaq.flutter_paypal_native.models.PurchaseUnitC;
 import com.piccmaq.flutter_paypal_native.models.PurchaseUnitHelper;
@@ -151,7 +152,9 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
 
         String purchaseUnitsStr = call.argument("purchaseUnits");
         String userActionStr = call.argument("userAction");
+        String intentStr = call.argument("intent");
         UserAction userAction = (new UserActionHelper()).getEnumFromString(userActionStr);
+        OrderIntent orderIntent = (new OrderIntentHelper()).getEnumFromString(intentStr);
 
         List<PurchaseUnitC> purchaseUnitsC = (new PurchaseUnitHelper())
                 .convertJsonToArrayList(purchaseUnitsStr);
@@ -175,7 +178,7 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
                                             .build());
                         }
                         OrderRequest order = new OrderRequest(
-                                OrderIntent.CAPTURE,
+                                orderIntent,
                                 new AppContext.Builder()
                                         .userAction(userAction)
                                         .build(),

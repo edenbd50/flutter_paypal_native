@@ -227,6 +227,7 @@ class _MyAppState extends State<MyApp> {
                     // initPayPal();
                     _flutterPaypalPlugin.makeOrder(
                       action: FPayPalUserAction.payNow,
+                      intent: FPayPalOrderIntent.capture
                     );
                   }
                 },

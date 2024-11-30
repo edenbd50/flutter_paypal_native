@@ -9,6 +9,7 @@ import 'flutter_paypal_native_platform_interface.dart';
 import 'models/custom/currency_code.dart';
 
 import 'models/custom/environment.dart';
+import 'models/custom/order_intent.dart';
 import 'models/custom/purchase_unit.dart';
 import 'models/custom/user_action.dart';
 import 'models/custom/order_callback.dart';
@@ -108,6 +109,7 @@ class FlutterPaypalNative {
   ///was not called before this function
   Future<void> makeOrder({
     FPayPalUserAction action = FPayPalUserAction.payNow,
+    FPayPalOrderIntent intent = FPayPalOrderIntent.capture,
   }) async {
     if (!_initiated) {
       throw Exception(
@@ -119,11 +121,16 @@ class FlutterPaypalNative {
       purchaseUnits,
     );
 
+    String intentData = FPayPalOrderIntentHelper.convertFromEnumToString(
+      intent,
+    );
+
     Map<String, String> data = {
       "purchaseUnits": purchaseUnitsData,
       "userAction": FPayPalUserActionHelper.convertFromEnumToString(
         action,
       ),
+      "intent": intentData,
     };
 
     await _methodChannel.invokeMethod<String>('FlutterPaypal#makeOrder', data);

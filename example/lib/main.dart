@@ -94,7 +94,7 @@ class _MyAppState extends State<MyApp> {
             children: [
               for (String t in logQueue) Text(t),
               ElevatedButton(
-                child: const Text("Do payment"),
+                child: const Text("Do payment (Capture)"),
                 onPressed: () {
                   //add 1 item to cart. Max is 4!
                   if (_flutterPaypalNativePlugin.canAddMorePurchaseUnit) {
@@ -111,6 +111,29 @@ class _MyAppState extends State<MyApp> {
                   // initPayPal();
                   _flutterPaypalNativePlugin.makeOrder(
                     action: FPayPalUserAction.payNow,
+                    intent: FPayPalOrderIntent.capture,
+                  );
+                },
+              ),
+              ElevatedButton(
+                child: const Text("Do payment (Authorize)"),
+                onPressed: () {
+                  //add 1 item to cart. Max is 4!
+                  if (_flutterPaypalNativePlugin.canAddMorePurchaseUnit) {
+                    _flutterPaypalNativePlugin.addPurchaseUnit(
+                      FPayPalPurchaseUnit(
+                        // random prices
+                        amount: Random().nextDouble() * 100,
+
+                        ///please use your own algorithm for referenceId. Maybe ProductID?
+                        referenceId: FPayPalStrHelper.getRandomString(16),
+                      ),
+                    );
+                  }
+                  // initPayPal();
+                  _flutterPaypalNativePlugin.makeOrder(
+                    action: FPayPalUserAction.payNow,
+                    intent: FPayPalOrderIntent.authorize,
                   );
                 },
               ),
