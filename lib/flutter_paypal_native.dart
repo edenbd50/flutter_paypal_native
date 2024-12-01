@@ -56,6 +56,8 @@ class FlutterPaypalNative {
     required FPayPalCurrencyCode currencyCode,
     //paynow or continue
     required FPayPalUserAction action,
+    //capture or authorize
+    required FPayPalOrderIntent intent,
   }) async {
     _methodChannel.setMethodCallHandler(_handleMethod);
     _initiated = true;
@@ -71,6 +73,9 @@ class FlutterPaypalNative {
       ),
       "userAction": FPayPalUserActionHelper.convertFromEnumToString(
         action,
+      ),
+      "intent": FPayPalOrderIntentHelper.convertFromEnumToString(
+        intent,
       ),
     };
     await _methodChannel.invokeMethod<String>(
