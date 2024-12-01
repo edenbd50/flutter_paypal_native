@@ -7,12 +7,14 @@ class PayPalCallBackHelper {
     init(flutterChannel: FlutterMethodChannel) {
         channel = flutterChannel
     }
-
-    public func onApprove(_ approval: Approval) throws {
-        approval.actions.capture { (response, error) in
-            //print("")
-            print("Order successfully captured: \(response?.data)")
+    public func onApprove(_ approval: Approval, intent: OrderIntent) throws {
+        if intent != .authorize {
+            // Proceed with capture only if intent is not authorize
+            approval.actions.capture { (response, error) in
+                print("Order successfully captured: \(response?.data)")
+            }
         }
+
         let data = approval.data
         var dataMap: [String: Any?] = data.toDictionary()
 
@@ -27,7 +29,7 @@ class PayPalCallBackHelper {
         let dataJson = try JSONSerialization.data(withJSONObject: dataMap, options: [])
         let jsonString = String(data: dataJson, encoding: .utf8)!
         let finalResult = ["result": jsonString]
-        channel.invokeMethod(" FlutterPaypal#onShippingChange", arguments: finalResult)
+        channel.invokeMethod("FlutterPaypal#onShippingChange", arguments: finalResult)
     }
 
     public func onCancel() {

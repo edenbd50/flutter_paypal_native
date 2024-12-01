@@ -5,6 +5,7 @@ import android.os.Build;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.paypal.checkout.approve.Approval;
+import com.paypal.checkout.createorder.OrderIntent;
 import com.paypal.checkout.error.ErrorInfo;
 import com.paypal.checkout.shipping.ShippingChangeActions;
 import com.paypal.checkout.shipping.ShippingChangeData;
@@ -21,7 +22,7 @@ public class PayPalCallBackHelper {
         this.flutterPaypalPlugin = flutterPaypalPlugin;
     }
 
-    public void onPayPalApprove(Approval approval) {
+    public void onPayPalApprove(Approval approval, OrderIntent intent) {
 
         HashMap<String, Object> data = new HashMap<>();
 
@@ -29,10 +30,12 @@ public class PayPalCallBackHelper {
         String json = gson.toJson(PPApprovalData.fromPayPalObject(approval));
         data.put("approvalData", json);
 
-        approval.getOrderActions().capture((onComplete) -> {
-            // Order successfully captured
+        if(intent == OrderIntent.CAPTURE) {
+            approval.getOrderActions().capture((onComplete) -> {
+                // Order successfully captured
 
-        });
+            });
+        }
         flutterPaypalPlugin.invokeMethodOnUiThread("FlutterPaypal#onSuccess", data);
 
     }

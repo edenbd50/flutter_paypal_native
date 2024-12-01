@@ -96,15 +96,18 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
         String payPalEnvironmentStr = call.argument("payPalEnvironment");
         String currencyStr = call.argument("currency");
         String userActionStr = call.argument("userAction");
+        String intentStr = call.argument("intent");
 
         CurrencyCode currency = (new CurrencyCodeHelper()).getEnumFromString(currencyStr);
         UserAction userAction = (new UserActionHelper()).getEnumFromString(userActionStr);
         Environment payPalEnvironment = (new EnvironmentHelper()).getEnumFromString(payPalEnvironmentStr);
+        OrderIntent intent = (new OrderIntentHelper()).getEnumFromString(intentStr);
 
         // store in checkoutconfigstore because application is sometimes null
         checkoutConfigStore = new CheckoutConfigStore(
                 clientId,
                 payPalEnvironment,
+                intent,
                 returnUrl,
                 currency,
                 userAction);
@@ -127,8 +130,8 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
         payPalCallBackHelper = new PayPalCallBackHelper(this);
         PayPalCheckout.registerCallbacks(
                 approval -> {
-                    // Order successfully captured
-                    payPalCallBackHelper.onPayPalApprove(approval);
+                    // Order successfully captured or autorized
+                    payPalCallBackHelper.onPayPalApprove(approval, checkoutConfigStore.intent);
                 },
                 (shippingData, shippingAction) -> {
                     // called when shippinginfo changes
