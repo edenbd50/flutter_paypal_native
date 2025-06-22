@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_paypal_native/flutter_paypal_native.dart';
 import 'package:flutter_paypal_native/models/custom/currency_code.dart';
 import 'package:flutter_paypal_native/models/custom/environment.dart';
+import 'package:flutter_paypal_native/models/custom/order_intent.dart';
 import 'package:flutter_paypal_native/str_helper.dart';
 import 'package:flutter_paypal_native/models/custom/purchase_unit.dart';
 import 'package:flutter_paypal_native/models/custom/user_action.dart';
@@ -48,6 +49,7 @@ class _MyAppState extends State<MyApp> {
       currencyCode: FPayPalCurrencyCode.usd,
       //action paynow?
       action: FPayPalUserAction.payNow,
+      intent: FPayPalOrderIntent.authorize,
     );
 
     //call backs for payment
