@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId "com.piccmaq.flutter_paypal_native_example"
-        minSdkVersion 34
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
