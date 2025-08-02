@@ -1,3 +1,8 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -14,8 +19,6 @@ if (flutterRoot == null) {
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
@@ -25,8 +28,8 @@ android {
     namespace "com.piccmaq.flutter_paypal_native_example"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -46,4 +49,10 @@ android {
 
 flutter {
     source '../..'
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }

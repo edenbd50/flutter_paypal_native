@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.2'
+        classpath 'com.android.tools.build:gradle:8.2.2'
         // START: FlutterFire Configuration
         classpath 'com.google.gms:google-services:4.3.10'
         // END: FlutterFire Configuration
@@ -41,14 +41,19 @@ android {
     compileSdkVersion 34
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 21
     }
+}
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
