@@ -149,6 +149,21 @@ class FlutterPaypalNative {
     await _methodChannel.invokeMethod<String>('FlutterPaypal#makeOrder', data);
   }
 
+  /// v6 device-risk fingerprint. Collects + submits a device session via the native Data Collector
+  /// (Magnes) under [clientMetadataId] and returns the id actually used — which the caller MUST send
+  /// to the server's create-order so the forwarded `PayPal-Client-Metadata-Id` header correlates with
+  /// the device session (mirrors web's `createInstance({ clientMetadataId })`).
+  ///
+  /// Android runs Magnes (bundled in the checkout SDK) and may sanitize the id to <=32 chars, so always
+  /// use the RETURN value. iOS returns [clientMetadataId] unchanged (the SDK correlates internally; its
+  /// Magnes copy isn't exposed for us to drive). Returns null only on an unexpected channel failure.
+  Future<String?> collectClientMetadataId(String clientMetadataId) async {
+    return _methodChannel.invokeMethod<String>(
+      'FlutterPaypal#collectClientMetadataId',
+      {'clientMetadataId': clientMetadataId},
+    );
+  }
+
   // Private function that gets called by ObjC/Java
   Future<void> _handleMethod(MethodCall call) async {
     //(call.arguments.cast<String, dynamic>())

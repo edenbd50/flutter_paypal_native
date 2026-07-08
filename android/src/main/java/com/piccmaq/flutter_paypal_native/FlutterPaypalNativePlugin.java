@@ -26,7 +26,16 @@ import com.piccmaq.flutter_paypal_native.models.PurchaseUnitHelper;
 import com.piccmaq.flutter_paypal_native.models.UserActionHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+// Magnes device-risk SDK — already bundled inside com.paypal.checkout:android-sdk (libs/android-magnessdk-*.jar),
+// so we call it directly (no extra dependency, no duplicate-class conflict). NOTE: `Environment` here would
+// clash with com.paypal.checkout.config.Environment, so the Magnes Environment is used fully-qualified below.
+import lib.android.com.paypal.magnessdk.MagnesResult;
+import lib.android.com.paypal.magnessdk.MagnesSDK;
+import lib.android.com.paypal.magnessdk.MagnesSettings;
+import lib.android.com.paypal.magnessdk.MagnesSource;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -61,6 +70,9 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
             return;
         } else if (call.method.equals("FlutterPaypal#makeOrder")) {
             makeOrder(call, result);
+            return;
+        } else if (call.method.equals("FlutterPaypal#collectClientMetadataId")) {
+            collectClientMetadataId(call, result);
             return;
         }
         result.notImplemented();
@@ -201,6 +213,47 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
             Toast.makeText(application, "error occured while getting order", Toast.LENGTH_SHORT).show();
 
             result.error("completed", e.getMessage(), e.getMessage());
+        }
+    }
+
+    // Collects + submits device-risk data via Magnes (bundled in the checkout SDK) under the supplied
+    // client-metadata-id, so the server-forwarded `PayPal-Client-Metadata-Id` correlates with a real
+    // device session (the v6 "supply your own id" model, mirroring web's createInstance). Returns the id
+    // actually used — sanitized to Magnes' <=32-char alphanumeric limit — which the caller MUST send to
+    // create-order. Never blocks checkout: any failure falls back to the suggested id.
+    private void collectClientMetadataId(@NonNull MethodCall call, @NonNull Result result) {
+        String suggested = call.argument("clientMetadataId");
+        try {
+            if (application == null) {
+                result.success(suggested);
+                return;
+            }
+            // Magnes requires an alphanumeric id <= 32 chars; a UUID becomes 32 hex chars once hyphens drop.
+            String cmid = suggested == null ? null : suggested.replace("-", "");
+            if (cmid != null && cmid.length() > 32) {
+                cmid = cmid.substring(0, 32);
+            }
+
+            lib.android.com.paypal.magnessdk.Environment magnesEnv =
+                    (checkoutConfigStore != null
+                            && checkoutConfigStore.payPalEnvironment == Environment.SANDBOX)
+                            ? lib.android.com.paypal.magnessdk.Environment.SANDBOX
+                            : lib.android.com.paypal.magnessdk.Environment.LIVE;
+
+            MagnesSettings settings = new MagnesSettings.Builder(application)
+                    .setMagnesEnvironment(magnesEnv)
+                    .setMagnesSource(MagnesSource.PAYPAL)
+                    .disableBeacon(false)
+                    .build();
+            MagnesSDK.getInstance().setUp(settings);
+
+            MagnesResult magnesResult = MagnesSDK.getInstance()
+                    .collectAndSubmit(application, cmid, new HashMap<String, String>());
+            String used = magnesResult != null ? magnesResult.getPaypalClientMetaDataId() : null;
+            result.success((used != null && !used.isEmpty()) ? used : cmid);
+        } catch (Exception e) {
+            // Fraud-signal collection must never break the payment; fall back to the suggested id.
+            result.success(suggested);
         }
     }
 

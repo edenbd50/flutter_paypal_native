@@ -25,9 +25,24 @@ public class SwiftFlutterPaypalNativePlugin: NSObject, FlutterPlugin {
             makeOrder(call, result)
             result("makeOrder")
             break
+        case "FlutterPaypal#collectClientMetadataId":
+            collectClientMetadataId(call, result)
+            break
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    // iOS passthrough. The PayPalCheckout framework statically embeds PPRiskMagnes but does NOT export
+    // its symbols as an importable module, and adding the PayPal/FraudProtection pod would duplicate
+    // that framework (link error) — so we cannot run Magnes under our own id here. The SDK still performs
+    // its own internal device-risk correlation during the approve flow; we just can't unify it with the
+    // create-order header id on this SDK version. Return the supplied id unchanged so the shared Dart flow
+    // works (the server treats the client-metadata-id as optional). True iOS parity needs the modern
+    // paypal-ios SDK (FraudProtection + server-created orders).
+    func collectClientMetadataId(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any]
+        result(args?["clientMetadataId"] as? String)
     }
 
     func initiatePackage(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) -> Void {
