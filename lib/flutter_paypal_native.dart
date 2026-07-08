@@ -115,6 +115,13 @@ class FlutterPaypalNative {
   Future<void> makeOrder({
     FPayPalUserAction action = FPayPalUserAction.payNow,
     FPayPalOrderIntent intent = FPayPalOrderIntent.capture,
+
+    /// v6 server-authoritative flow: when set, the native SDK APPROVES this server-created order
+    /// id (`createOrderAction.set(orderId:)`) instead of building purchase units client-side. The
+    /// server owns the amount + intent and forwards the `PayPal-Client-Metadata-Id` on create, so
+    /// [purchaseUnits] / [intent] are ignored in this mode. Leave null for the legacy client-order
+    /// flow.
+    String? orderId,
   }) async {
     if (!_initiated) {
       throw Exception(
@@ -136,6 +143,7 @@ class FlutterPaypalNative {
         action,
       ),
       "intent": intentData,
+      if (orderId != null && orderId.isNotEmpty) "orderId": orderId,
     };
 
     await _methodChannel.invokeMethod<String>('FlutterPaypal#makeOrder', data);

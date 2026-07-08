@@ -80,6 +80,9 @@ public class SwiftFlutterPaypalNativePlugin: NSObject, FlutterPlugin {
         let purchaseUnitsStr = args["purchaseUnits"] as! String
         let intentStr = args["intent"] as! String // Fetch intent string
         let orderIntent = OrderIntent.init(rawValueString: intentStr) // Convert intent string
+        // v6 server-authoritative: when the server already created the order (and forwarded the
+        // PayPal-Client-Metadata-Id), we approve THAT order id instead of building purchase units.
+        let serverOrderId = args["orderId"] as? String
 
         let listCustomUnit = try! JSONDecoder().decode([CustomUnit].self, from: purchaseUnitsStr.data(using: .utf8)!)
         var purchaseUnits: [PurchaseUnit] = []
@@ -98,11 +101,16 @@ public class SwiftFlutterPaypalNativePlugin: NSObject, FlutterPlugin {
         }
         Checkout.start(
             createOrder: { createOrderAction in
-                let order = OrderRequest(
-                    intent: orderIntent, // Use parsed intent
-                    purchaseUnits: purchaseUnits
-                )
-                createOrderAction.create(order: order)
+                if let orderId = serverOrderId, !orderId.isEmpty {
+                    // Approve the server-created order (intent was set server-side).
+                    createOrderAction.set(orderId: orderId)
+                } else {
+                    let order = OrderRequest(
+                        intent: orderIntent, // Use parsed intent
+                        purchaseUnits: purchaseUnits
+                    )
+                    createOrderAction.create(order: order)
+                }
             }
         )
     }

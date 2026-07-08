@@ -156,6 +156,9 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
         String purchaseUnitsStr = call.argument("purchaseUnits");
         String userActionStr = call.argument("userAction");
         String intentStr = call.argument("intent");
+        // v6 server-authoritative: when present, approve THIS server-created order id instead of
+        // building purchase units client-side (the server set the intent + PayPal-Client-Metadata-Id).
+        String serverOrderId = call.argument("orderId");
         UserAction userAction = (new UserActionHelper()).getEnumFromString(userActionStr);
         OrderIntent orderIntent = (new OrderIntentHelper()).getEnumFromString(intentStr);
 
@@ -166,6 +169,10 @@ public class FlutterPaypalNativePlugin extends FlutterRegistrarResponder
         try {
             PayPalCheckout.startCheckout(
                     createOrderActions -> {
+                        if (serverOrderId != null && !serverOrderId.isEmpty()) {
+                            createOrderActions.set(serverOrderId);
+                            return;
+                        }
                         ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
                         for (PurchaseUnitC purchaseUnit : purchaseUnitsC) {
                             CurrencyCode currency = helper.getEnumFromString(

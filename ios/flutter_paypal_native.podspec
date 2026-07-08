@@ -15,7 +15,9 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'PayPalCheckout'
+  # Pin to the 1.x line: `CreateOrderAction.set(orderId:)` (server-authoritative v6 flow) is in 1.x,
+  # and this locks out a future breaking 2.0. Was unpinned (picked latest, could drift into a major).
+  s.dependency 'PayPalCheckout', '~> 1.0'
   # s.platform = :ios
   s.platform = :ios, '13.0'
 
